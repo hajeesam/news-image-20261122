@@ -1489,7 +1489,11 @@ def main() -> int:
     path = os.path.join(out_dir, "entry.png")
     with open(path, "wb") as f:
         f.write(data)
-    digest = hashlib.sha256(data).hexdigest()
+    # Guard: verify the bytes actually written to disk, so the submitted
+    # file is byte-identical to the approved r4 draft (not just the
+    # in-memory buffer) -- any drift fails loudly instead of silently.
+    with open(path, "rb") as f:
+        digest = hashlib.sha256(f.read()).hexdigest()
     print(f"wrote {path} ({len(data)} bytes, sha256 {digest})")
     if digest != EXPECTED_SHA256:
         print("ERROR: sha256 mismatch against the approved r4 draft",
